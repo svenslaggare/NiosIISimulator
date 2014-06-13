@@ -1,4 +1,4 @@
-NiosII
+Nios II Simulator
 ======
 
 Simulator for the Nios II processor architecture written in C# for .NET 4.5.

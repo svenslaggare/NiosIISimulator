@@ -1,0 +1,8 @@
+﻿<Window x:Class="NiosII_Simulator.CodeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CodeWindow" Height="300" Width="300" WindowStyle="ToolWindow" Closing="Window_Closing">
+    <Grid>
+        <TextBox x:Name="CodeBox" Margin="10,10,10,10" TextWrapping="Wrap" Text="" AcceptsReturn="True" AcceptsTab="True"/>
+    </Grid>
+</Window>

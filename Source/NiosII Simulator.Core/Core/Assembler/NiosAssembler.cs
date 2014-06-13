@@ -180,10 +180,70 @@ namespace NiosII_Simulator.Core.Assembler
             instructionAssemblers.Add("srli", shiftImmGenerator("srli", OperationCodes.Srli, OperationXCodes.Srli));
             #endregion
 
-            #region Branch
+			#region Compare
+			instructionAssemblers.Add("cmpeq", rFormatGenerator("cmpeq", OperationCodes.Cmpeq, OperationXCodes.Cmpeq));
+			instructionAssemblers.Add("cmpne", rFormatGenerator("cmpne", OperationCodes.Cmpne, OperationXCodes.Cmpne));
+			instructionAssemblers.Add("cmpge", rFormatGenerator("cmpge", OperationCodes.Cmpge, OperationXCodes.Cmpge));
+			instructionAssemblers.Add("cmplt", rFormatGenerator("cmplt", OperationCodes.Cmplt, OperationXCodes.Cmplt));
 
-            #region Generator
-            Func<string, OperationCodes, Func<CurrentInstruction, Instruction>> branchAssemblerGenerator = (instrName, opCode) =>
+			macros.Add("cmple", inst =>
+			{
+				if (inst.Operands.Length == 3)
+				{
+					return new List<string[]>() { new string[] { "cmpge", inst.Operands[1], inst.Operands[0], inst.Operands[2] } };
+				}
+				else
+				{
+					throw new AssemblerException(inst.LineNumber, "cmple", "There can be only 3 operands.");
+				}
+			});
+
+			macros.Add("cmpgt", inst =>
+			{
+				if (inst.Operands.Length == 3)
+				{
+					return new List<string[]>() { new string[] { "cmplt", inst.Operands[1], inst.Operands[0], inst.Operands[2] } };
+				}
+				else
+				{
+					throw new AssemblerException(inst.LineNumber, "cmpgt", "There can be only 3 operands.");
+				}
+			});
+
+			instructionAssemblers.Add("cmpeqi", iFormatGenerator("cmpeqi", OperationCodes.Cmpeqi));
+			instructionAssemblers.Add("cmpnei", iFormatGenerator("cmpnei", OperationCodes.Cmpnei));
+			instructionAssemblers.Add("cmpgei", iFormatGenerator("cmpgei", OperationCodes.Cmpgei));
+			instructionAssemblers.Add("cmplti", iFormatGenerator("cmplti", OperationCodes.Cmplti));
+
+			//macros.Add("cmplei", inst =>
+			//{
+			//	if (inst.Operands.Length == 3)
+			//	{
+			//		return new List<string[]>() { new string[] { "cmplti", inst.Operands[0], inst.Operands[1], inst.Operands[2] + "+1" } };
+			//	}
+			//	else
+			//	{
+			//		throw new AssemblerException(inst.LineNumber, "cmplei", "There can be only 3 operands.");
+			//	}
+			//});
+
+			//macros.Add("cmpgti", inst =>
+			//{
+			//	if (inst.Operands.Length == 3)
+			//	{
+			//		return new List<string[]>() { new string[] { "cmpgei", inst.Operands[0], inst.Operands[1], inst.Operands[2] + "+1"  } };
+			//	}
+			//	else
+			//	{
+			//		throw new AssemblerException(inst.LineNumber, "cmpgti", "There can be only 3 operands.");
+			//	}
+			//});
+			#endregion
+
+			#region Branch
+
+			#region Generator
+			Func<string, OperationCodes, Func<CurrentInstruction, Instruction>> branchAssemblerGenerator = (instrName, opCode) =>
             {
                 Func<CurrentInstruction, Instruction> instructionAssembler = inst =>
                 {

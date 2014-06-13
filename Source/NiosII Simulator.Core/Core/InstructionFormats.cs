@@ -38,6 +38,14 @@ namespace NiosII_Simulator.Core
         Sll = 0x3a,
         Srli = 0x3a,
         Slli = 0x3a,
+		Cmpeq = 0x3a,
+		Cmpne = 0x3a,
+		Cmpge = 0x3a,
+		Cmplt = 0x3a,
+		Cmpnei = 0x18,
+		Cmpeqi = 0x20,
+		Cmpgei = 0x08,
+		Cmplti = 0x10,
         Call = 0x0,
         Callr = 0x3a,
         Ret = 0x3a
@@ -76,6 +84,11 @@ namespace NiosII_Simulator.Core
         public static readonly int Srli = BitHelpers.FromBitPattern("011010 00000");
         public static readonly int Slli = BitHelpers.FromBitPattern("010010 00000");
 
+		public static readonly int Cmpeq = BitHelpers.FromBitPattern("100000 00000");
+		public static readonly int Cmpne = BitHelpers.FromBitPattern("011000 00000");
+		public static readonly int Cmpge = BitHelpers.FromBitPattern("001000 00000");
+		public static readonly int Cmplt = BitHelpers.FromBitPattern("010000 00000");
+
         public static readonly int Ret = BitHelpers.FromBitPattern("000101 00000");
 
         public static readonly int Callr = BitHelpers.FromBitPattern("011101 00000");
@@ -112,7 +125,7 @@ namespace NiosII_Simulator.Core
     }
 
     /// <summary>
-    /// Represents an instruction encoded in the I-type
+    /// Represents an instruction encoded in the I-format
     /// </summary>
     public struct IFormatInstruction : IInstructionFormat
     {
@@ -240,7 +253,7 @@ namespace NiosII_Simulator.Core
     }
 
     /// <summary>
-	/// Represents an instruction encoded in the R-type
+	/// Represents an instruction encoded in the R-format
     /// </summary>
     public struct RFormatInstruction : IInstructionFormat
     {
@@ -353,7 +366,7 @@ namespace NiosII_Simulator.Core
     }
 
     /// <summary>
-	/// Represents an instruction encoded in the I-type
+	/// Represents an instruction encoded in the I-format
     /// </summary>
     public struct JFormatInstruction : IInstructionFormat
     {

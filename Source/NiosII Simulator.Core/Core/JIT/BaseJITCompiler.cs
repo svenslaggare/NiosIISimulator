@@ -551,14 +551,14 @@ namespace NiosII_Simulator.Core.JIT
 			if (!this.instructionEmiters.ContainsKey(opCode))
 			{
 				//Create the emiter
-				InstructionEmiter newExecutor = new InstructionEmiter()
+				InstructionEmiter newEmiter = new InstructionEmiter()
 				{
 					InstructionFormat = InstructionFormat.IFormat,
 					IFormatInstructionEmiter = emiter,
 				};
 
 				//Add it
-				this.instructionEmiters.Add(opCode, newExecutor);
+				this.instructionEmiters.Add(opCode, newEmiter);
 			}
 		}
 
@@ -573,7 +573,7 @@ namespace NiosII_Simulator.Core.JIT
 		{
 			InstructionEmiter newEmiter = null;
 
-			//Check if an executor exist
+			//Check if an emiter exist
 			if (this.instructionEmiters.ContainsKey(opCode))
 			{
 				//Get it
@@ -592,7 +592,7 @@ namespace NiosII_Simulator.Core.JIT
 				this.instructionEmiters.Add(opCode, newEmiter);
 			}
 
-			//Check if an opx code executor exists
+			//Check if an opx code emiter exists
 			if (!newEmiter.RFormatInstructionEmiters.ContainsKey(opxCode))
 			{
 				newEmiter.RFormatInstructionEmiters.Add(opxCode, emiter);

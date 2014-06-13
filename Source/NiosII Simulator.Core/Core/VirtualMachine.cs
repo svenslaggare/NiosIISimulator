@@ -437,8 +437,170 @@ namespace NiosII_Simulator.Core
             }, ~0x1F);
             #endregion
 
-            #region Memory
-            //The ldw instruction
+			#region Compare
+			//The cmpeq instruction
+            this.AddRFormatExecutor(OperationCodes.Cmpeq.Code(), OperationXCodes.Cmpeq, inst =>
+            {
+                //Get the value of reg A & B
+                int regA = this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+                int regB = this.GetRegisterValue(this.GetRegister(inst.RegisterB).Value);
+
+                //Get the destination register
+                Registers regC = this.GetRegister(inst.RegisterC).Value;
+
+                //Compare them them
+                if (regA == regB)
+				{
+					this.SetRegisterValue(regC, 1);
+				}
+				else
+				{
+					this.SetRegisterValue(regC, 0);
+				}
+            });
+
+			//The cmpeqi instruction
+			this.AddIFormatExecutor(OperationCodes.Cmpeqi.Code(), inst =>
+			{
+				//Get the value of reg A
+				int regA = this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+
+				//Get the destination register
+				Registers regB = this.GetRegister(inst.RegisterB).Value;
+
+				if (regA == inst.SignedImmediate)
+				{
+					this.SetRegisterValue(regB, 1);
+				}
+				else
+				{
+					this.SetRegisterValue(regB, 0);
+				}
+			});
+
+			//The cmpne instruction
+			this.AddRFormatExecutor(OperationCodes.Cmpne.Code(), OperationXCodes.Cmpne, inst =>
+			{
+				//Get the value of reg A & B
+				int regA = this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+				int regB = this.GetRegisterValue(this.GetRegister(inst.RegisterB).Value);
+
+				//Get the destination register
+				Registers regC = this.GetRegister(inst.RegisterC).Value;
+
+				//Compare them them
+				if (regA != regB)
+				{
+					this.SetRegisterValue(regC, 1);
+				}
+				else
+				{
+					this.SetRegisterValue(regC, 0);
+				}
+			});
+
+			//The cmpnei instruction
+			this.AddIFormatExecutor(OperationCodes.Cmpnei.Code(), inst =>
+			{
+				//Get the value of reg A
+				int regA = this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+
+				//Get the destination register
+				Registers regB = this.GetRegister(inst.RegisterB).Value;
+
+				if (regA != inst.SignedImmediate)
+				{
+					this.SetRegisterValue(regB, 1);
+				}
+				else
+				{
+					this.SetRegisterValue(regB, 0);
+				}
+			});
+
+			//The cmpge instruction
+			this.AddRFormatExecutor(OperationCodes.Cmpge.Code(), OperationXCodes.Cmpge, inst =>
+			{
+				//Get the value of reg A & B
+				int regA = this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+				int regB = this.GetRegisterValue(this.GetRegister(inst.RegisterB).Value);
+
+				//Get the destination register
+				Registers regC = this.GetRegister(inst.RegisterC).Value;
+
+				//Compare them them
+				if (regA >= regB)
+				{
+					this.SetRegisterValue(regC, 1);
+				}
+				else
+				{
+					this.SetRegisterValue(regC, 0);
+				}
+			});
+
+			//The cmpgei instruction
+			this.AddIFormatExecutor(OperationCodes.Cmpgei.Code(), inst =>
+			{
+				//Get the value of reg A
+				int regA = this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+
+				//Get the destination register
+				Registers regB = this.GetRegister(inst.RegisterB).Value;
+
+				if (regA >= inst.SignedImmediate)
+				{
+					this.SetRegisterValue(regB, 1);
+				}
+				else
+				{
+					this.SetRegisterValue(regB, 0);
+				}
+			});
+
+			//The cmplt instruction
+			this.AddRFormatExecutor(OperationCodes.Cmplt.Code(), OperationXCodes.Cmplt, inst =>
+			{
+				//Get the value of reg A & B
+				int regA = this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+				int regB = this.GetRegisterValue(this.GetRegister(inst.RegisterB).Value);
+
+				//Get the destination register
+				Registers regC = this.GetRegister(inst.RegisterC).Value;
+
+				//Compare them them
+				if (regA < regB)
+				{
+					this.SetRegisterValue(regC, 1);
+				}
+				else
+				{
+					this.SetRegisterValue(regC, 0);
+				}
+			});
+
+			//The cmplti instruction
+			this.AddIFormatExecutor(OperationCodes.Cmplti.Code(), inst =>
+			{
+				//Get the value of reg A
+				int regA = this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+
+				//Get the destination register
+				Registers regB = this.GetRegister(inst.RegisterB).Value;
+
+				if (regA < inst.SignedImmediate)
+				{
+					this.SetRegisterValue(regB, 1);
+				}
+				else
+				{
+					this.SetRegisterValue(regB, 0);
+				}
+			});
+			#endregion
+
+			#region Memory
+			//The ldw instruction
             this.AddIFormatExecutor(OperationCodes.Ldw.Code(), inst =>
             {
                 //Get the value of reg A

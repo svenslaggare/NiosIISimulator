@@ -14,10 +14,24 @@ The basic arithmetic, logic, branch, call and memory instructions.
 <br>
 All instruction formats are supported, so implementing the full range of instructions should be trivial.
 
+<h3>Assembler</h3>
+Supported features:
+* All supported instructions.
+* Assembler macros (%lo, %hi, %hiadj).
+* Labels.
+
+Planed features:
+* User defined macro instructions.
+* Data variables (.word, .byte).
+* Constants (.eq).
+
+Not supported features:
+* Assembler directives: .align, .data, .text
+
 <h3>JIT Compiler</h3>
 The JIT compiler compiles the Nios instructions to [CIL](http://en.wikipedia.org/wiki/Common_Intermediate_Language) instructions.
 <br>
-At the moment, it exists to JIT compiler, the "Full" and the "Partial".
+At the moment, it exists two JIT compilers, the "Full" and the "Partial".
 <br>
 The full compiles on a program basis and partial on function basis which means
 it can run at the same time the interpreter is running.

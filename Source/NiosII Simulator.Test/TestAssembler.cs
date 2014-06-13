@@ -260,10 +260,10 @@ namespace NiosII_Simulator.Test
 		}
 
 		/// <summary>
-		/// Tests the assembler marcos
+		/// Tests the assembler macros
 		/// </summary>
 		[TestMethod]
-		public void TestAssemblerMarcos2()
+		public void TestAssemblerMacros2()
 		{
 			VirtualMachine virtualMachine = new VirtualMachine();
 			Program program = NiosAssembler.New().AssembleFromLines(
@@ -278,6 +278,36 @@ namespace NiosII_Simulator.Test
 
 			virtualMachine.Run(program);
 			Assert.AreEqual(0, virtualMachine.GetRegisterValue(Registers.R2));
+		}
+
+		/// <summary>
+		/// Tests declaring data variables
+		/// </summary>
+		[TestMethod]
+		public void TestDataVariables()
+		{
+			VirtualMachine virtualMachine = new VirtualMachine();
+			Program program = NiosAssembler.New().AssembleFromLines(
+				".data",
+				"x: .word 1337",
+				".text",
+				"movia r1, x",
+				"ldw r2, 0(r1)");
+
+			virtualMachine.Run(program);
+			Assert.AreEqual(1337, virtualMachine.GetRegisterValue(Registers.R2));
+
+			virtualMachine.ClearMemory();
+
+			program = NiosAssembler.New().AssembleFromLines(
+				".data",
+				"x: .word 112",
+				".text",
+				"movia r1, x",
+				"ldb r2, 0(r1)");
+
+			virtualMachine.Run(program);
+			Assert.AreEqual(112, virtualMachine.GetRegisterValue(Registers.R2));
 		}
     }
 }

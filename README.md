@@ -19,14 +19,14 @@ Supported features:
 * All supported instructions.
 * Assembler macros (%lo, %hi, %hiadj).
 * Labels.
+* Data variables (.word, .byte).
 
 Planed features:
 * User defined macro instructions.
-* Data variables (.word, .byte).
 * Constants (.eq).
 
 Not supported features:
-* Assembler directives: .align, .data, .text
+* Assembler directives: .align
 
 <h3>JIT Compiler</h3>
 The JIT compiler compiles the Nios instructions to [CIL](http://en.wikipedia.org/wiki/Common_Intermediate_Language) instructions.

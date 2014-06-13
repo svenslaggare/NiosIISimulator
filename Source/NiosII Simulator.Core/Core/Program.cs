@@ -313,18 +313,18 @@ namespace NiosII_Simulator.Core
         /// <returns>A new program</returns>
         public static Program NewProgram(Instruction[] instructions, IDictionary<string, uint> symbolTable, IDictionary<uint, int> functionTable, DataArea dataArea = null)
         {
-            int dataSize = instructions.Length * 4;
+            int programSize = instructions.Length * 4;
             uint textAreaStart = 0;
 
             if (dataArea == null)
             {
-                dataArea = DataArea.EmptyArea(dataSize);
+                dataArea = DataArea.EmptyArea(programSize);
             }
 
-            dataSize += dataArea.Start - (int)textAreaStart;
-            dataSize += dataArea.Size;
+            programSize += dataArea.Start - (programSize - (int)textAreaStart);
+            programSize += dataArea.Size;
 
-            byte[] data = new byte[dataSize];
+            byte[] data = new byte[programSize];
 
             //Set the instructions
             for (int i = 0; i < instructions.Length; i++)

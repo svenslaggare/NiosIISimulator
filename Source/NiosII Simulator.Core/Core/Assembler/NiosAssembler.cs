@@ -258,7 +258,7 @@ namespace NiosII_Simulator.Core.Assembler
 						string targetStr = inst.Operands[2];
 						string newOperand = "";
 
-						if (this.ParseDirective(inst.LineNumber, "br", inst.SymbolTable, targetStr, out newOperand, true))
+						if (this.ParseAssemblerMacro(inst.LineNumber, "br", inst.SymbolTable, targetStr, out newOperand, true))
 						{
 							targetStr = newOperand;
 						}
@@ -307,7 +307,7 @@ namespace NiosII_Simulator.Core.Assembler
 					string targetStr = inst.Operands[0];
 					string newOperand = "";
 
-					if (this.ParseDirective(inst.LineNumber, "br", inst.SymbolTable, targetStr, out newOperand, true))
+					if (this.ParseAssemblerMacro(inst.LineNumber, "br", inst.SymbolTable, targetStr, out newOperand, true))
 					{
 						targetStr = newOperand;
 					}
@@ -652,7 +652,7 @@ namespace NiosII_Simulator.Core.Assembler
 
 		#region Assemble/Disassemble Methods
 		/// <summary>
-		/// Parses the given directive
+		/// Parses the given assembler macro
 		/// </summary>
 		/// <param name="lineNum">The line number</param>
 		/// <param name="instruction">The instruction</param>
@@ -661,22 +661,22 @@ namespace NiosII_Simulator.Core.Assembler
 		/// <param name="newOperand">The new operand if parsed</param>
 		/// <param name="isBranchInst">If the current instruction is a branch instruction</param>
 		/// <returns>True if parsed else false</returns>
-		private bool ParseDirective(int lineNum, string instruction, Dictionary<string, uint> symbolTable, string operand, out string newOperand, bool isBranchInst = false)
+		private bool ParseAssemblerMacro(int lineNum, string instruction, Dictionary<string, uint> symbolTable, string operand, out string newOperand, bool isBranchInst = false)
 		{
-			//Check if directive
+			//Check if macro
 			if (operand.StartsWith("%"))
 			{
 				Match directiveMatch = Regex.Match(operand, "%([a-zA-Z0-9]+)\\(([a-zA-Z0-9]+)\\)");
 
 				if (directiveMatch.Groups.Count == 3)
 				{
-					string directive = directiveMatch.Groups[1].ToString();
+					string macroName = directiveMatch.Groups[1].ToString();
 					string valueStr = directiveMatch.Groups[2].ToString();
 					int value = 0;
 
 					if (int.TryParse(valueStr, out value))
 					{
-						switch (directive)
+						switch (macroName)
 						{
 							case "lo":
 								value = value & 0xFFFF;
@@ -688,7 +688,7 @@ namespace NiosII_Simulator.Core.Assembler
 								value = ((value >> 16) & 0xFFFF) + ((value >> 15) & 0x1);
 								break;
 							default:
-								throw new AssemblerException(lineNum, instruction, "Assembler macro '" + directive + "' not found.");
+								throw new AssemblerException(lineNum, instruction, "Assembler macro '" + macroName + "' not found.");
 						}
 
 						if (isBranchInst)
@@ -708,11 +708,11 @@ namespace NiosII_Simulator.Core.Assembler
 						}
 						else
 						{
-							return this.ParseDirective(
+							return this.ParseAssemblerMacro(
 								lineNum,
 								instruction,
 								symbolTable,
-								string.Format("%{0}({1})", directive, symbolTable[valueStr]),
+								string.Format("%{0}({1})", macroName, symbolTable[valueStr]),
 								out newOperand,
 								isBranchInst);
 						}
@@ -724,12 +724,27 @@ namespace NiosII_Simulator.Core.Assembler
 			return false;
 		}
 
+		private enum AssemblerMode
+		{
+			Data,
+			Text
+		}
+
+		private class DefinedDataVariable
+		{
+			public int StartValue { get; set; }
+			public DataType DataType { get; set; }
+		}
+
 		/// <summary>
 		/// The first pass for the assembler
 		/// </summary>
-		private void FirstPass(string[] lines, List<string[]> instructionAndOperandList, Dictionary<string, uint> symbolTable, HashSet<string> functions)
+		private void FirstPass(string[] lines, List<string[]> splitedLines,
+			Dictionary<string, uint> symbolTable, Dictionary<string, DefinedDataVariable> dataVariables, HashSet<string> functions)
 		{
 			int currentLineNum = 0;
+			AssemblerMode mode = AssemblerMode.Text;
+
 			for (int i = 0; i < lines.Length; i++)
 			{
 				string currentLine = lines[i];
@@ -745,46 +760,100 @@ namespace NiosII_Simulator.Core.Assembler
 					//Must be atleast 1 token
 					if (instructionAndOperands.Length >= 1)
 					{
+						bool skipLine = false;
+
+						//Check if assembler directive
+						if (instructionAndOperands[0].StartsWith("."))
+						{
+							if (instructionAndOperands[0] == ".data")
+							{
+								mode = AssemblerMode.Data;
+								handled = true;
+								skipLine = true;
+							}
+
+							if (instructionAndOperands[0] == ".text")
+							{
+								mode = AssemblerMode.Text;
+								handled = true;
+								skipLine = true;
+							}
+						}
+
 						//Check if starts with an label
 						if (instructionAndOperands[0].EndsWith(":"))
 						{
 							string label = instructionAndOperands[0].Substring(0, instructionAndOperands[0].Length - 1);
-							symbolTable.Add(label, (uint)currentLineNum * 4);
 
-							//Must be atleast 2 tokens
-							if (instructionAndOperands.Length >= 2)
+							if (mode == AssemblerMode.Text)
 							{
-								instructionAndOperands = instructionAndOperands.Skip(1).ToArray();
-								handled = true;
+								symbolTable.Add(label, (uint)currentLineNum * 4);
+
+								//Must be atleast 2 tokens
+								if (instructionAndOperands.Length >= 2)
+								{
+									instructionAndOperands = instructionAndOperands.Skip(1).ToArray();
+									handled = true;
+								}
+
+								//Only a label, insert a NOP
+								if (instructionAndOperands.Length == 1)
+								{
+									instructionAndOperands = new string[] { "nop" };
+									handled = true;
+								}
 							}
-
-							//Only a label, insert a NOP
-							if (instructionAndOperands.Length == 1)
+							else
 							{
-								instructionAndOperands = new string[] { "nop" };
+								//symbolTable.Add(label, (uint)currentLineNum * 4);
+								string varType = instructionAndOperands[1];
+								string varStartValue = instructionAndOperands[2];
+								int startValue = 0;
+
+								if (!int.TryParse(varStartValue, out startValue))
+								{
+									throw new AssemblerException(i, "", "The current start value is not an integer.");
+								}
+
+								switch(varType)
+								{
+									case ".word":
+										dataVariables.Add(label, new DefinedDataVariable() { StartValue = startValue, DataType = DataType.Word  });
+										break;
+									case ".byte":
+										dataVariables.Add(label, new DefinedDataVariable() { StartValue = startValue, DataType = DataType.Byte });
+										break;
+									default:
+										throw new AssemblerException(i, "", "Unrecognized data variable type '" + varType + "'.");
+								}
+
+								skipLine = true;
 								handled = true;
 							}
 						}
 
 						//Check if a marco
-						if (macros.ContainsKey(instructionAndOperands[0]))
+						if (!skipLine && mode == AssemblerMode.Text)
 						{
-							//Get the marco
-							var marco = macros[instructionAndOperands[0]];
-
-							CurrentInstruction currentInstruction = new CurrentInstruction()
+							if (macros.ContainsKey(instructionAndOperands[0]))
 							{
-								LineNumber = i,
-								Operands = instructionAndOperands.Skip(1).ToArray(),
-							};
+								//Get the macro
+								var macro = macros[instructionAndOperands[0]];
 
-							instructionAndOperandList.AddRange(marco(currentInstruction));
-							handled = true;
-						}
-						else
-						{
-							instructionAndOperandList.Add(instructionAndOperands);
-							handled = true;
+								CurrentInstruction currentInstruction = new CurrentInstruction()
+								{
+									LineNumber = i,
+									Operands = instructionAndOperands.Skip(1).ToArray(),
+								};
+
+								splitedLines.AddRange(macro(currentInstruction));
+								handled = true;
+							}
+							else
+							{
+								splitedLines.Add(instructionAndOperands);
+								handled = true;
+							}
 						}
 					}
 
@@ -811,7 +880,7 @@ namespace NiosII_Simulator.Core.Assembler
 		/// <summary>
 		/// The second pass for the assembler
 		/// </summary>
-		private void SecondPass(List<Instruction> instructions, List<string[]> instructionAndOperandList,
+		private void SecondPass(List<Instruction> instructions, List<string[]> splitedLines,
 			Dictionary<string, uint> symbolTable, HashSet<string> functions, Dictionary<uint, int> functionTable)
 		{
 			//The function table (entry point and sizes for functions, needed for the jitter).
@@ -820,9 +889,9 @@ namespace NiosII_Simulator.Core.Assembler
 			int funcSize = 0;
 
 			//Begin the second pass
-			for (int lineNum = 0; lineNum < instructionAndOperandList.Count; lineNum++)
+			for (int lineNum = 0; lineNum < splitedLines.Count; lineNum++)
 			{
-				string[] currentLine = instructionAndOperandList[lineNum];
+				string[] currentLine = splitedLines[lineNum];
 				string instruction = currentLine[0].ToLower();
 
 				//Find the decoder
@@ -833,11 +902,11 @@ namespace NiosII_Simulator.Core.Assembler
 					{
 						if (!branchInstructions.Contains(instruction))
 						{
-							//Check if directive
+							//Check if assembler macro
 							string newOperand = "";
-							bool isDirective = this.ParseDirective(lineNum, instruction, symbolTable, operand, out newOperand);
+							bool isAssemblerMacro = this.ParseAssemblerMacro(lineNum, instruction, symbolTable, operand, out newOperand);
 
-							if (isDirective)
+							if (isAssemblerMacro)
 							{
 								operand = newOperand;
 							}
@@ -909,14 +978,14 @@ namespace NiosII_Simulator.Core.Assembler
 		public Program Assemble(string[] lines, IDictionary<string, uint> callTable = null)
 		{
 			//The instructions
-			List<Instruction> instructions = new List<Instruction>();
+			var instructions = new List<Instruction>();
 
-			Dictionary<string, uint> symbolTable = new Dictionary<string, uint>();
-			List<string[]> instructionAndOperandList = new List<string[]>();
-			HashSet<string> functions = new HashSet<string>();
-
+			var symbolTable = new Dictionary<string, uint>();
+			var dataVariables = new Dictionary<string, DefinedDataVariable>();
+			var splitedLines = new List<string[]>();
+			var functions = new HashSet<string>();
 			//The function table (entry point and sizes for functions, needed for the jitter).
-			Dictionary<uint, int> functionTable = new Dictionary<uint, int>();
+			var functionTable = new Dictionary<uint, int>();
 
 			//Insert the call table
 			if (callTable != null)
@@ -927,10 +996,54 @@ namespace NiosII_Simulator.Core.Assembler
 				}
 			}
 
-			this.FirstPass(lines, instructionAndOperandList, symbolTable, functions);
-			this.SecondPass(instructions, instructionAndOperandList, symbolTable, functions, functionTable);
+			this.FirstPass(lines, splitedLines, symbolTable, dataVariables, functions);
 
-			return Program.NewProgram(instructions.ToArray(), symbolTable, functionTable);
+			DataArea dataArea = null;
+
+			//Check if any data variables is defined
+			if (dataVariables.Count > 0)
+			{
+				int size = dataVariables.Values.Aggregate(0, (total, current) =>
+				{
+					if (current.DataType == DataType.Word)
+					{
+						return total + 4;
+					}
+					else
+					{
+						return total + 1;
+					}
+				});
+
+				int start = splitedLines.Count * 4;
+				uint currentAddr = (uint)start;
+
+				var dataTable = dataVariables.Select(var =>
+				{
+					DataVariable newVar = null;
+
+					if (var.Value.DataType == DataType.Word)
+					{
+						newVar = DataVariable.NewWord(currentAddr, var.Value.StartValue);
+						symbolTable.Add(var.Key, currentAddr);
+						currentAddr += 4;
+					}
+					else
+					{
+						newVar = DataVariable.NewByte(currentAddr, (byte)var.Value.StartValue);
+						symbolTable.Add(var.Key, currentAddr);
+						currentAddr += 1;
+					}
+
+					return newVar;
+				}).ToList();
+
+				dataArea = new DataArea(start, size, dataTable);
+			}
+
+			this.SecondPass(instructions, splitedLines, symbolTable, functions, functionTable);
+
+			return Program.NewProgram(instructions.ToArray(), symbolTable, functionTable, dataArea);
 		}
 
 		/// <summary>

@@ -301,13 +301,29 @@ namespace NiosII_Simulator.Test
 
 			program = NiosAssembler.New().AssembleFromLines(
 				".data",
-				"x: .word 112",
+				"x: .byte 112",
 				".text",
 				"movia r1, x",
 				"ldb r2, 0(r1)");
 
 			virtualMachine.Run(program);
 			Assert.AreEqual(112, virtualMachine.GetRegisterValue(Registers.R2));
+
+			try
+			{
+				program = NiosAssembler.New().AssembleFromLines(
+					".data",
+					"x: .byte 300",
+					".text",
+					"movia r1, x",
+					"ldb r2, 0(r1)");
+
+				Assert.Fail("Expected exception.");
+			}
+			catch
+			{
+				Assert.IsTrue(true);
+			}
 		}
     }
 }

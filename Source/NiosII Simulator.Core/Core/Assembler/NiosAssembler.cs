@@ -821,7 +821,14 @@ namespace NiosII_Simulator.Core.Assembler
 										dataVariables.Add(label, new DefinedDataVariable() { StartValue = startValue, DataType = DataType.Word  });
 										break;
 									case ".byte":
-										dataVariables.Add(label, new DefinedDataVariable() { StartValue = startValue, DataType = DataType.Byte });
+										if (startValue >= 0 && startValue <= 255)
+										{
+											dataVariables.Add(label, new DefinedDataVariable() { StartValue = startValue, DataType = DataType.Byte });
+										}
+										else
+										{
+											throw new AssemblerException(i, "", "The byte value must be in the range [0, 255].");
+										}
 										break;
 									default:
 										throw new AssemblerException(i, "", "Unrecognized data variable type '" + varType + "'.");
@@ -984,6 +991,7 @@ namespace NiosII_Simulator.Core.Assembler
 			var dataVariables = new Dictionary<string, DefinedDataVariable>();
 			var splitedLines = new List<string[]>();
 			var functions = new HashSet<string>();
+
 			//The function table (entry point and sizes for functions, needed for the jitter).
 			var functionTable = new Dictionary<uint, int>();
 

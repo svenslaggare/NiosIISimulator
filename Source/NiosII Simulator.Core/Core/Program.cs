@@ -71,7 +71,7 @@ namespace NiosII_Simulator.Core
 
         private DataVariable(DataType dataType, uint address, byte byteValue, int wordValue)
         {
-            this.DataType = DataType;
+            this.DataType = dataType;
             this.Address = address;
             this.byteValue = byteValue;
             this.wordValue = wordValue;

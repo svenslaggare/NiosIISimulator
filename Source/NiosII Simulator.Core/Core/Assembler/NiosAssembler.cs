@@ -215,29 +215,47 @@ namespace NiosII_Simulator.Core.Assembler
 			instructionAssemblers.Add("cmpgei", iFormatGenerator("cmpgei", OperationCodes.Cmpgei));
 			instructionAssemblers.Add("cmplti", iFormatGenerator("cmplti", OperationCodes.Cmplti));
 
-			//macros.Add("cmplei", inst =>
-			//{
-			//	if (inst.Operands.Length == 3)
-			//	{
-			//		return new List<string[]>() { new string[] { "cmplti", inst.Operands[0], inst.Operands[1], inst.Operands[2] + "+1" } };
-			//	}
-			//	else
-			//	{
-			//		throw new AssemblerException(inst.LineNumber, "cmplei", "There can be only 3 operands.");
-			//	}
-			//});
+			macros.Add("cmplei", inst =>
+			{
+				if (inst.Operands.Length == 3)
+				{
+					int value = 0;
 
-			//macros.Add("cmpgti", inst =>
-			//{
-			//	if (inst.Operands.Length == 3)
-			//	{
-			//		return new List<string[]>() { new string[] { "cmpgei", inst.Operands[0], inst.Operands[1], inst.Operands[2] + "+1"  } };
-			//	}
-			//	else
-			//	{
-			//		throw new AssemblerException(inst.LineNumber, "cmpgti", "There can be only 3 operands.");
-			//	}
-			//});
+					if (int.TryParse(inst.Operands[2], out value))
+					{
+						return new List<string[]>() { new string[] { "cmplti", inst.Operands[0], inst.Operands[1], (value + 1).ToString() } };
+					}
+					else
+					{
+						throw new AssemblerException(inst.LineNumber, "cmplei", "Expected int as third operand.");
+					}
+				}
+				else
+				{
+					throw new AssemblerException(inst.LineNumber, "cmplei", "There can be only 3 operands.");
+				}
+			});
+
+			macros.Add("cmpgti", inst =>
+			{
+				if (inst.Operands.Length == 3)
+				{
+					int value = 0;
+
+					if (int.TryParse(inst.Operands[2], out value))
+					{
+						return new List<string[]>() { new string[] { "cmpgei", inst.Operands[0], inst.Operands[1], (value + 1).ToString() } };
+					}
+					else
+					{
+						throw new AssemblerException(inst.LineNumber, "cmpgti", "Expected int as third operand.");
+					}
+				}
+				else
+				{
+					throw new AssemblerException(inst.LineNumber, "cmpgti", "There can be only 3 operands.");
+				}
+			});
 			#endregion
 
 			#region Branch
@@ -805,7 +823,6 @@ namespace NiosII_Simulator.Core.Assembler
 							}
 							else
 							{
-								//symbolTable.Add(label, (uint)currentLineNum * 4);
 								string varType = instructionAndOperands[1];
 								string varStartValue = instructionAndOperands[2];
 								int startValue = 0;
@@ -815,10 +832,10 @@ namespace NiosII_Simulator.Core.Assembler
 									throw new AssemblerException(i, "", "The current start value is not an integer.");
 								}
 
-								switch(varType)
+								switch (varType)
 								{
 									case ".word":
-										dataVariables.Add(label, new DefinedDataVariable() { StartValue = startValue, DataType = DataType.Word  });
+										dataVariables.Add(label, new DefinedDataVariable() { StartValue = startValue, DataType = DataType.Word });
 										break;
 									case ".byte":
 										if (startValue >= 0 && startValue <= 255)
@@ -872,7 +889,7 @@ namespace NiosII_Simulator.Core.Assembler
 					if (handled)
 					{
 						//Check if call instruction
-						if (instructionAndOperands[0] == "call" && instructionAndOperands.Length >= 2)
+						if (instructionAndOperands[0] == "call" && instructionAndOperands.Length == 2)
 						{
 							//Add the called function to the list of functions
 							functions.Add(instructionAndOperands[1]);
@@ -976,6 +993,46 @@ namespace NiosII_Simulator.Core.Assembler
 			}
 		}
 
+		private DataArea CreateDataArea(List<string[]> splitedLines, Dictionary<string, uint> symbolTable, Dictionary<string, DefinedDataVariable> dataVariables)
+		{
+			int size = dataVariables.Values.Aggregate(0, (total, current) =>
+			{
+				if (current.DataType == DataType.Word)
+				{
+					return total + 4;
+				}
+				else
+				{
+					return total + 1;
+				}
+			});
+
+			int start = splitedLines.Count * 4;
+			uint currentAddr = (uint)start;
+
+			var dataTable = dataVariables.Select(var =>
+			{
+				DataVariable newVar = null;
+
+				if (var.Value.DataType == DataType.Word)
+				{
+					newVar = DataVariable.NewWord(currentAddr, var.Value.StartValue);
+					symbolTable.Add(var.Key, currentAddr);
+					currentAddr += 4;
+				}
+				else
+				{
+					newVar = DataVariable.NewByte(currentAddr, (byte)var.Value.StartValue);
+					symbolTable.Add(var.Key, currentAddr);
+					currentAddr += 1;
+				}
+
+				return newVar;
+			}).ToList();
+
+			return new DataArea(start, size, dataTable);
+		}
+
 		/// <summary>
 		/// Assembles a program from the given lines
 		/// </summary>
@@ -1011,42 +1068,7 @@ namespace NiosII_Simulator.Core.Assembler
 			//Check if any data variables is defined
 			if (dataVariables.Count > 0)
 			{
-				int size = dataVariables.Values.Aggregate(0, (total, current) =>
-				{
-					if (current.DataType == DataType.Word)
-					{
-						return total + 4;
-					}
-					else
-					{
-						return total + 1;
-					}
-				});
-
-				int start = splitedLines.Count * 4;
-				uint currentAddr = (uint)start;
-
-				var dataTable = dataVariables.Select(var =>
-				{
-					DataVariable newVar = null;
-
-					if (var.Value.DataType == DataType.Word)
-					{
-						newVar = DataVariable.NewWord(currentAddr, var.Value.StartValue);
-						symbolTable.Add(var.Key, currentAddr);
-						currentAddr += 4;
-					}
-					else
-					{
-						newVar = DataVariable.NewByte(currentAddr, (byte)var.Value.StartValue);
-						symbolTable.Add(var.Key, currentAddr);
-						currentAddr += 1;
-					}
-
-					return newVar;
-				}).ToList();
-
-				dataArea = new DataArea(start, size, dataTable);
+				dataArea = this.CreateDataArea(splitedLines, symbolTable, dataVariables);
 			}
 
 			this.SecondPass(instructions, splitedLines, symbolTable, functions, functionTable);

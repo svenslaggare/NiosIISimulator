@@ -14,7 +14,7 @@ namespace NiosII_Simulator.Core
         private readonly int data;
 
         /// <summary>
-        /// Creates an new instruction
+        /// Creates a new instruction
         /// </summary>
         /// <param name="data">The data of the instruction</param>
         public Instruction(int data)
@@ -78,7 +78,7 @@ namespace NiosII_Simulator.Core
         }
 
         /// <summary>
-        /// Returns the value if the variable is an word
+        /// Returns the value if the variable is a word
         /// </summary>
         public int Word
         {
@@ -96,7 +96,7 @@ namespace NiosII_Simulator.Core
         }
 
         /// <summary>
-        /// Returns the value if the variable is an byte
+        /// Returns the value if the variable is a byte
         /// </summary>
         public byte Byte
         {
@@ -148,7 +148,7 @@ namespace NiosII_Simulator.Core
 
         #region Constructors
         /// <summary>
-        /// Creates an new data area
+        /// Creates a new data area
         /// </summary>
         /// <param name="start">The start of the area</param>
         /// <param name="size">The size of the area</param>
@@ -189,7 +189,7 @@ namespace NiosII_Simulator.Core
 
         #region Methods
         /// <summary>
-        /// Returns an empty area at the given position
+        /// Returns an empty area at the given address
         /// </summary>
         /// <param name="start">The start of the area</param>
         public static DataArea EmptyArea(int start)
@@ -375,7 +375,7 @@ namespace NiosII_Simulator.Core
         }
         
 		/// <summary>
-		/// Returns the instruction stored in the program
+		/// Returns the instructions stored in the program
 		/// </summary>
 		public Instruction[] GetInstructions()
 		{

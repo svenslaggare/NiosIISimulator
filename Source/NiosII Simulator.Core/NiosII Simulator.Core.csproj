@@ -44,6 +44,7 @@
     <Compile Include="Core\Assembler\NiosAssembler.cs" />
     <Compile Include="Core\BitHelpers.cs" />
     <Compile Include="Core\Exceptions\MisalignedAddressException.cs" />
+    <Compile Include="Core\InstructionCodes.cs" />
     <Compile Include="Core\InstructionFormats.cs" />
     <Compile Include="Core\JIT\BaseJITCompiler.cs" />
     <Compile Include="Core\JIT\FullJITCompiler.cs" />

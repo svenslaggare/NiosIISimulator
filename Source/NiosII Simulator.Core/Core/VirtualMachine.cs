@@ -1047,7 +1047,7 @@ namespace NiosII_Simulator.Core
         }
 
         /// <summary>
-        /// Writes an byte to memory at the given address
+        /// Writes a byte to memory at the given address
         /// </summary>
         /// <param name="address">The address</param>
         /// <param name="value">The value</param>
@@ -1057,7 +1057,7 @@ namespace NiosII_Simulator.Core
         }
 
         /// <summary>
-        /// Writes an word (an int) to memory at the given address
+        /// Writes a word (an int) to memory at the given address
         /// </summary>
         /// <param name="address">The address</param>
         /// <param name="value">The value</param>
@@ -1263,9 +1263,9 @@ namespace NiosII_Simulator.Core
 
         #region Instruction Helper Methods
         /// <summary>
-        /// Jumps to the given adress
+        /// Jumps to the given address
         /// </summary>
-        /// <param name="newProgramCounter">The value to jump to</param>
+        /// <param name="newProgramCounter">The address to jump to</param>
         /// <param name="instructionName">The name of the instruction</param>
         private void JumpTo(uint newProgramCounter, string instructionName)
         {
@@ -1354,7 +1354,6 @@ namespace NiosII_Simulator.Core
         /// <param name="program">The program to run</param>
         public void LoadProgram(Program program)
         {
-            //this.ClearMemory();
             this.textArea = program.TextAreaStart;
             this.dataArea = program.DataAreaStart;
             this.entryPoint = program.EntryPoint;

@@ -9,6 +9,8 @@ Simulator for the Nios II processor architecture written in C# for .NET 4.5.
 * Interpreter.
 * JIT compiler (experimental).
 
+<h2>Indepth</h2>
+
 <h3>Supported instructions</h3>
 The basic arithmetic, logic, branch, compare, call and memory instructions.
 <br>
@@ -47,7 +49,7 @@ Compiles on a program basis. This compiler will lose some semantics.
 <h4>Partial JIT</h4>
 Compiles on a function bases running along side the interpreter. This should allow
 more correct semantics but still good performance for often called functions.
-At the moment only supports calling JITTed functions, not calling other JITted functions or
+At the moment only supports calling JITted functions, not calling other JITted functions or
 interpreted functions.
 
 <h3>Roadmap</h3>

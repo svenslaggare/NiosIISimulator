@@ -47,7 +47,7 @@ namespace NiosII_Simulator.Core
         public IFormatInstructionExecutor IFormatInstructionExecutor { get; set; }
 
         /// <summary>
-		/// The R-format executors (because a R-format instructions can have multiple instructions with the same OP-code)
+		/// The R-format executors (because R-format instructions can have multiple instructions with the same OP-code)
         /// </summary>
         public Dictionary<int, RFormatInstructionExecutor> RFormatInstructionExecutors { get; set; }
 

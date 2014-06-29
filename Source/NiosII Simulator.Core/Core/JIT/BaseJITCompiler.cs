@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace NiosII_Simulator.Core.JIT
 {
 	/// <summary>
-	/// Emits an jitted instruction for the given generator
+	/// Emits a jitted instruction for the given generator
 	/// </summary>
 	/// <param name="index">The index of the instruction</param>
 	/// <param name="instruction">The instruction</param>
@@ -17,7 +17,7 @@ namespace NiosII_Simulator.Core.JIT
 	public delegate void IFormatInstructionEmiter(int index, IFormatInstruction instruction, MethodGeneratorData generatorData);
 
 	/// <summary>
-	/// Emits an jitted instruction for the given generator
+	/// Emits a jitted instruction for the given generator
 	/// </summary>
 	/// <param name="index">The index of the instruction</param>
 	/// <param name="instruction">The instruction</param>
@@ -25,7 +25,7 @@ namespace NiosII_Simulator.Core.JIT
 	public delegate void RFormatInstructionEmiter(int index, RFormatInstruction instruction, MethodGeneratorData generatorData);
 
 	/// <summary>
-	/// Emits an jitted instruction for the given generator
+	/// Emits a jitted instruction for the given generator
 	/// </summary>
 	/// <param name="index">The index of the instruction</param>
 	/// <param name="instruction">The instruction</param>
@@ -48,7 +48,7 @@ namespace NiosII_Simulator.Core.JIT
 		public IFormatInstructionEmiter IFormatInstructionEmiter { get; set; }
 
 		/// <summary>
-		/// The R-format emiter (because a R-format instructions can have some op-codes)
+		/// The R-format emiter (because R-format instructions can have multiple instructions with the same OP-code))
 		/// </summary>
 		public Dictionary<int, RFormatInstructionEmiter> RFormatInstructionEmiters { get; set; }
 
@@ -278,6 +278,110 @@ namespace NiosII_Simulator.Core.JIT
 
 			//The sll instruction
 			this.AddRFormatEmiter(OperationCodes.Srl, OperationXCodes.Srl, rFormatEmiterGenerator(OpCodes.Shr));
+
+			Func<OpCode, RFormatInstructionEmiter> shiftImmGenerator = opCode =>
+			{
+				return (i, inst, genData) =>
+				{
+					var gen = genData.ILGenerator;
+
+					//Push reg C
+					this.EmitRegRef(gen, inst.RegisterC);
+
+					//Load the value of reg A
+					this.EmitRegRef(gen, inst.RegisterA);
+					this.EmitLoadRef(gen);
+
+					//Push the imm field, stored in the OPX code
+					gen.Emit(OpCodes.Ldc_I4, inst.OpxCode & 0x1F);
+
+					//Apply the operation
+					gen.Emit(opCode);
+
+					//Store in reg C
+					this.EmitSaveRef(gen);
+				};
+			};
+
+			//The slli instruction
+			this.AddRFormatEmiter(OperationCodes.Slli, OperationXCodes.Slli, shiftImmGenerator(OpCodes.Shl), ~0x1F);
+
+			//The srli instruction
+			this.AddRFormatEmiter(OperationCodes.Srli, OperationXCodes.Srli, shiftImmGenerator(OpCodes.Shr), ~0x1F);
+			#endregion
+
+			#region Compare
+			//The cmpeq instruction
+			this.AddRFormatEmiter(OperationCodes.Cmpeq, OperationXCodes.Cmpeq, rFormatEmiterGenerator(OpCodes.Ceq));
+			
+			//The cmpne instruction
+			this.AddRFormatEmiter(OperationCodes.Cmpne, OperationXCodes.Cmpne, (i, inst, genData) =>
+			{
+				var gen = genData.ILGenerator;
+
+				//Push reg C
+				this.EmitRegRef(gen, inst.RegisterC);
+
+				//Load the value of reg A
+				this.EmitRegRef(gen, inst.RegisterA);
+				this.EmitLoadRef(gen);
+
+				//Load the value of reg B
+				this.EmitRegRef(gen, inst.RegisterB);
+				this.EmitLoadRef(gen);
+
+				Label end = gen.DefineLabel();
+				Label setOne = gen.DefineLabel();
+
+				//Branch if A == B
+				gen.Emit(OpCodes.Beq, setOne);
+				gen.Emit(OpCodes.Ldc_I4_1); //A != B, push 1
+				gen.Emit(OpCodes.Br, end);
+
+				gen.MarkLabel(setOne);
+				gen.Emit(OpCodes.Ldc_I4_0); //A == B, push 0
+
+				gen.MarkLabel(end);
+
+				//Store in reg C
+				this.EmitSaveRef(gen);
+			});
+
+			//The cmplt instruction
+			this.AddRFormatEmiter(OperationCodes.Cmplt, OperationXCodes.Cmplt, rFormatEmiterGenerator(OpCodes.Clt));
+
+			//The cmpge instruction
+			this.AddRFormatEmiter(OperationCodes.Cmpge, OperationXCodes.Cmpge, (i, inst, genData) =>
+			{
+				var gen = genData.ILGenerator;
+
+				//Push reg C
+				this.EmitRegRef(gen, inst.RegisterC);
+
+				//Load the value of reg A
+				this.EmitRegRef(gen, inst.RegisterA);
+				this.EmitLoadRef(gen);
+
+				//Load the value of reg B
+				this.EmitRegRef(gen, inst.RegisterB);
+				this.EmitLoadRef(gen);
+
+				Label end = gen.DefineLabel();
+				Label setOne = gen.DefineLabel();
+
+				//Branch if A >= B
+				gen.Emit(OpCodes.Bge, setOne);
+				gen.Emit(OpCodes.Ldc_I4_0); //A < B, push 0
+				gen.Emit(OpCodes.Br, end);
+
+				gen.MarkLabel(setOne);
+				gen.Emit(OpCodes.Ldc_I4_1); //A >= B, push 1
+
+				gen.MarkLabel(end);
+
+				//Store in reg C
+				this.EmitSaveRef(gen);
+			});
 			#endregion
 
 			#region Branch

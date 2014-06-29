@@ -19,6 +19,8 @@ namespace NiosII_Simulator.Core
 		Ldb = 0x07,
 		Ldbu = 0x03,
 		Stb = 0x05,
+		Ldh = 0x0f,
+		Sth = 0x0d,
 		Br = 0x06,
 		Beq = 0x26,
 		Bne = 0x1e,

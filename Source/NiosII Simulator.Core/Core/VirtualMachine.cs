@@ -657,12 +657,6 @@ namespace NiosII_Simulator.Core
 				//Compute the effective address
 				uint address = (uint)(baseAddress + inst.Immediate);
 
-				////Check if the address is alinged to 4
-				//if (!BitHelpers.IsAligned(address, 2))
-				//{
-				//	throw new MisalignedAddressException("LDB", this.ProgramCounter, address);
-				//}
-
 				//Load the value
 				byte value = this.ReadByteFromMemory(address);
 
@@ -682,12 +676,6 @@ namespace NiosII_Simulator.Core
 				//Compute the effective address
 				uint address = (uint)(baseAddress + inst.Immediate);
 
-				////Check if the address is alinged to 4
-				//if (!BitHelpers.IsAligned(address, 2))
-				//{
-				//	throw new MisalignedAddressException("LDB", this.ProgramCounter, address);
-				//}
-
 				//Load the value
 				int value = (int)((uint)this.ReadByteFromMemory(address));
 
@@ -705,14 +693,53 @@ namespace NiosII_Simulator.Core
 				//Compute the effective address
 				uint address = (uint)(baseAddress + inst.Immediate);
 
-				////Check if the address is alinged to 4
-				//if (!BitHelpers.IsAligned(address, 2))
-				//{
-				//	throw new MisalignedAddressException("STW", this.ProgramCounter, address);
-				//}
-
 				//Store the value
 				this.WriteByteToMemory(address, value);
+			});
+
+			//The ldh instruction
+			this.AddIFormatExecutor(OperationCodes.Ldh.Code(), inst =>
+			{
+				//Get the value of reg A
+				uint baseAddress = (uint)this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+
+				//Get the destination register
+				Registers destinationReg = this.GetRegister(inst.RegisterB).Value;
+
+				//Compute the effective address
+				uint address = (uint)(baseAddress + inst.Immediate);
+
+				//Check if the address is alinged to 2
+				if (!BitHelpers.IsAligned(address, 1))
+				{
+					throw new MisalignedAddressException("LDH", this.ProgramCounter, address);
+				}
+
+				//Load the value
+				int value = this.ReadHalfWordFromMemory(address);
+
+				//Store at the register
+				this.SetRegisterValue(destinationReg, value);
+			});
+
+			//The sth instruction
+			this.AddIFormatExecutor(OperationCodes.Sth.Code(), inst =>
+			{
+				//Get the value of reg A & B
+				uint baseAddress = (uint)this.GetRegisterValue(this.GetRegister(inst.RegisterA).Value);
+				int value = this.GetRegisterValue(this.GetRegister(inst.RegisterB).Value);
+
+				//Compute the effective address
+				uint address = (uint)(baseAddress + inst.Immediate);
+
+				//Check if the address is alinged to 2
+				if (!BitHelpers.IsAligned(address, 1))
+				{
+					throw new MisalignedAddressException("STH", this.ProgramCounter, address);
+				}
+
+				//Store the value
+				this.WriteHalfWordToMemory(address, (short)(value & 0xFFFF));
 			});
             #endregion
 
@@ -1023,7 +1050,7 @@ namespace NiosII_Simulator.Core
 
         #region Memory Methods
         /// <summary>
-        /// Reads an byte from memory at the given address
+        /// Reads a byte from memory at the given address
         /// </summary>
         /// <param name="address">The address</param>
         public byte ReadByteFromMemory(uint address)
@@ -1032,7 +1059,7 @@ namespace NiosII_Simulator.Core
         }
 
         /// <summary>
-        /// Reads an word (an int) from memory at the given address
+        /// Reads a word (an int) from memory at the given address
         /// </summary>
         /// <param name="address">The address</param>
         public int ReadWordFromMemory(uint address)
@@ -1045,6 +1072,19 @@ namespace NiosII_Simulator.Core
             int value = byte1 | (byte2 << 8) | (byte3 << 16) | (byte4 << 24);
             return value;
         }
+
+		/// <summary>
+		/// Reads a word (a short) from memory at the given address
+		/// </summary>
+		/// <param name="address">The address</param>
+		public int ReadHalfWordFromMemory(uint address)
+		{
+			byte byte1 = this.memory[address];
+			byte byte2 = this.memory[address + 1];
+
+			int value = byte1 | (byte2 << 8);
+			return value;
+		}
 
         /// <summary>
         /// Writes a byte to memory at the given address
@@ -1068,6 +1108,17 @@ namespace NiosII_Simulator.Core
             this.memory[address + 1] = (byte)(value >> 8);
             this.memory[address] = (byte)(value);
         }
+
+		/// <summary>
+		/// Writes a half word (a short) to memory at the given address
+		/// </summary>
+		/// <param name="address">The address</param>
+		/// <param name="value">The value</param>
+		public void WriteHalfWordToMemory(uint address, short value)
+		{
+			this.memory[address + 1] = (byte)(value >> 8);
+			this.memory[address] = (byte)(value);
+		}
 
         /// <summary>
         /// Clears the main memory

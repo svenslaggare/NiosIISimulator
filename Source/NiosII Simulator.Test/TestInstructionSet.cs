@@ -19,7 +19,7 @@ namespace NiosII_Simulator.Test
         }
 
         /// <summary>
-        /// Tests the ADD instruction
+        /// Tests the add instruction
         /// </summary>
         [TestMethod]
         public void TestAdd()
@@ -39,7 +39,7 @@ namespace NiosII_Simulator.Test
         }
 
         /// <summary>
-        /// Tests the ADDI instruction
+        /// Tests the addi instruction
         /// </summary>
         [TestMethod]
         public void TestAddi()
@@ -57,7 +57,7 @@ namespace NiosII_Simulator.Test
         }
 
         /// <summary>
-        /// Tests the SUB instruction
+        /// Tests the sub instruction
         /// </summary>
         [TestMethod]
         public void TestSub()
@@ -77,7 +77,7 @@ namespace NiosII_Simulator.Test
         }
 
         /// <summary>
-        /// Tests the SLLI instruction
+        /// Tests the slli instruction
         /// </summary>
         [TestMethod]
         public void TestSlli()
@@ -96,7 +96,7 @@ namespace NiosII_Simulator.Test
         }
 
         /// <summary>
-        /// Tests the SRLI instruction
+        /// Tests the srli instruction
         /// </summary>
         [TestMethod]
         public void TestSrli()
@@ -115,7 +115,7 @@ namespace NiosII_Simulator.Test
         }
 
 		/// <summary>
-		/// Tests the LDB instruction
+		/// Tests the ldb instruction
 		/// </summary>
 		[TestMethod]
 		public void TestLdb()
@@ -137,7 +137,7 @@ namespace NiosII_Simulator.Test
 		}
 
 		/// <summary>
-		/// Tests the LDBU instruction
+		/// Tests the ldbu instruction
 		/// </summary>
 		[TestMethod]
 		public void TestLdbu()
@@ -159,7 +159,7 @@ namespace NiosII_Simulator.Test
 		}
 
 		/// <summary>
-		/// Tests the STB instruction
+		/// Tests the stb instruction
 		/// </summary>
 		[TestMethod]
 		public void TestStb()
@@ -178,6 +178,50 @@ namespace NiosII_Simulator.Test
 
 			this.virtualMachine.ExecuteInstruction(ldbInstruction.Encode());
 			Assert.AreEqual(value, this.virtualMachine.ReadByteFromMemory(addr));
+		}
+
+		/// <summary>
+		/// Tests the ldh instruction
+		/// </summary>
+		[TestMethod]
+		public void TestLdh()
+		{
+			uint addr = 1024;
+			short value = 4251;
+
+			this.virtualMachine.SetRegisterValue(Registers.R1, (int)addr);
+			this.virtualMachine.WriteHalfWordToMemory(addr, value);
+
+			IFormatInstruction ldbInstruction = new IFormatInstruction(
+				OperationCodes.Ldh.Code(),
+				1,
+				2,
+				0);
+
+			this.virtualMachine.ExecuteInstruction(ldbInstruction.Encode());
+			Assert.AreEqual(value, this.virtualMachine.GetRegisterValue(Registers.R2));
+		}
+
+		/// <summary>
+		/// Tests the sth instruction
+		/// </summary>
+		[TestMethod]
+		public void TestSth()
+		{
+			uint addr = 1024;
+			short value = 6424;
+
+			this.virtualMachine.SetRegisterValue(Registers.R1, (int)addr);
+			this.virtualMachine.SetRegisterValue(Registers.R2, value);
+
+			IFormatInstruction ldbInstruction = new IFormatInstruction(
+				OperationCodes.Sth.Code(),
+				1,
+				2,
+				0);
+
+			this.virtualMachine.ExecuteInstruction(ldbInstruction.Encode());
+			Assert.AreEqual(value, this.virtualMachine.ReadHalfWordFromMemory(addr));
 		}
     }
 }

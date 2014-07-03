@@ -140,6 +140,11 @@ namespace NiosII_Simulator
 				this.runCancelToken.Cancel();
 			}
 		}
+
+		private void EnableJit_Checked(object sender, RoutedEventArgs e)
+		{
+			this.virtualMachine.EnableJit = this.EnableJit.IsChecked.Value;
+		}
         #endregion
 
         #region File Menu

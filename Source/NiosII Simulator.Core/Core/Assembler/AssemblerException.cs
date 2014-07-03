@@ -22,7 +22,7 @@ namespace NiosII_Simulator.Core.Assembler
         public string Instruction { get; private set; }
 
         /// <summary>
-        /// Creates an new assembler exception
+        /// Creates a new assembler exception
         /// </summary>
         /// <param name="line">The line</param>
         /// <param name="instruction">The instruction</param>

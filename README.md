@@ -52,7 +52,7 @@ more correct semantics but still good performance for often called functions.
 At the moment only supports calling JITted functions, not calling other JITted functions or
 interpreted functions.
 
-<h3>Roadmap</h3>
+<h2>Roadmap</h2>
 * Unit tests for full instruction set.
 * One-to-one mapping between supported instructions and supported JIT instructions.
 * Rewritten assembler.
